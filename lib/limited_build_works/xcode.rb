@@ -31,7 +31,7 @@ module LimitedBuildWorks
         "-arch"          => arch,
       }
       action = "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}"
-      status, outputs, errors, command = execute( options.merge( add_options ), action )
+      status, outputs, errors, command = build( options.merge( add_options ), action )
       puts "[#{arch}] #{command}"
       if 0 == status
         outputs.each{|line|
@@ -46,7 +46,7 @@ module LimitedBuildWorks
     def build_ios_archs( project, target, configuration, output_dir, archs, add_options = {} )
       results = []
       archs.each{|arch|
-        result = ios_build( project, target, configuration, output_dir, arch, add_options )
+        result = build_ios_arch( project, target, configuration, output_dir, arch, add_options )
         return "" if ! Ult.file?( result )
         
         results.push result
