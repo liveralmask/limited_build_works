@@ -1,5 +1,2 @@
 require "limited_build_works/version"
-
-module LimitedBuildWorks
-  
-end
+require "limited_build_works/xcode"
