@@ -4,12 +4,12 @@ module LimitedBuildWorks
   module Xcode
     extend self
     
-    def build( options = {}, action = "" )
+    def build( options = {}, command = "" )
       option_strings = []
       options.each{|key, value|
         option_strings.push "#{key} #{value}"
       }
-      Ult.execute( "xcodebuild #{option_strings.join( ' ' )} #{action}" )
+      Ult.execute( "xcodebuild #{option_strings.join( ' ' )} #{command}" )
     end
     
     def build_ios_arch( project, target, configuration, output_dir, arch, add_options = {} )
@@ -30,8 +30,7 @@ module LimitedBuildWorks
         "-sdk"           => sdk,
         "-arch"          => arch,
       }
-      action = "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}"
-      status, outputs, errors, command = build( options.merge( add_options ), action )
+      status, outputs, errors, command = build( options.merge( add_options ), "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" )
       puts "[#{arch}] #{command}"
       if 0 == status
         outputs.each{|line|
