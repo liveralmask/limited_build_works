@@ -20,6 +20,7 @@ module LimitedBuildWorks
       status, outputs, errors, command = build( options.merge( add_options ), srcs.join( " " ) )
       puts command
       if 0 != status
+        puts outputs
         puts errors
         output = ""
       end

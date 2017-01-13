@@ -37,6 +37,7 @@ module LimitedBuildWorks
           return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
         }
       else
+        puts outputs
         puts errors
       end
       ""
@@ -58,6 +59,7 @@ module LimitedBuildWorks
       return dst if 0 == status
       
       puts command
+      puts outputs
       puts errors
       ""
     end
