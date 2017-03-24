@@ -12,7 +12,7 @@ module LimitedBuildWorks
       Ult.execute( "xcodebuild #{option_strings.join( ' ' )} #{command}" )
     end
     
-    def build_ios_arch( project, target, configuration, output_dir, arch, add_options = {} )
+    def build_ios_arch( project, target, configuration, output_dir, arch, add_options = {}, &callback )
       case arch
       when /arm*/
         sdk = "iphoneos"
@@ -32,6 +32,7 @@ module LimitedBuildWorks
       }
       status, outputs, errors, command = build( options.merge( add_options ), "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" )
       puts "[#{arch}] #{command}"
+      callback.call( status, outputs, errors, command ) if ! callback.nil?
       if 0 == status
         outputs.each{|line|
           return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
@@ -43,10 +44,13 @@ module LimitedBuildWorks
       ""
     end
     
-    def build_ios_archs( project, target, configuration, output_dir, archs, add_options = {} )
+    def build_ios_archs( project, target, configuration, output_dir, archs, add_options = {}, &callback )
+      callback = lambda{|status, outputs, errors, command|} if callback.nil?
       results = []
       archs.each{|arch|
-        result = build_ios_arch( project, target, configuration, output_dir, arch, add_options )
+        result = build_ios_arch( project, target, configuration, output_dir, arch, add_options ){|status, outputs, errors, command|
+          callback.call( status, outputs, errors, command )
+        }
         return "" if ! Ult.file?( result )
         
         results.push result
