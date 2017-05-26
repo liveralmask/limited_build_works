@@ -19,9 +19,9 @@ module LimitedBuildWorks
       }
       status, outputs, errors, command = build( options.merge( add_options ), srcs.join( " " ) )
       puts command
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
       puts outputs if ! outputs.empty?
       STDERR.puts errors if ! errors.empty?
+      callback.call( status, outputs, errors, command ) if ! callback.nil?
       status
     end
   end

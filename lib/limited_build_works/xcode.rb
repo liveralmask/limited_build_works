@@ -32,9 +32,9 @@ module LimitedBuildWorks
       }
       status, outputs, errors, command = build( options.merge( add_options ), "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" )
       puts "[#{arch}] #{command}"
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
       puts outputs if ! outputs.empty?
       STDERR.puts errors if ! errors.empty?
+      callback.call( status, outputs, errors, command ) if ! callback.nil?
       outputs.each{|line|
         return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
       }
@@ -57,12 +57,10 @@ module LimitedBuildWorks
     
     def lipo_create( dst, srcs )
       status, outputs, errors, command = Ult.execute( "lipo -create #{srcs.join( ' ' )} -output #{dst}" )
-      return dst if 0 == status
-      
       puts command
       puts outputs if ! outputs.empty?
       STDERR.puts errors if ! errors.empty?
-      ""
+      ( 0 == status ) ? dst : ""
     end
   end
 end

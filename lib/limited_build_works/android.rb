@@ -14,9 +14,9 @@ module LimitedBuildWorks
       }
       status, outputs, errors, command = Ult.execute( "#{ndk_root}/ndk-build -B #{option_strings.join( ' ' )} #{command}" )
       puts command
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
       puts outputs if ! outputs.empty?
       STDERR.puts errors if ! errors.empty?
+      callback.call( status, outputs, errors, command ) if ! callback.nil?
       status
     end
   end
