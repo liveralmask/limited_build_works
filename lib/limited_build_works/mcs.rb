@@ -12,19 +12,17 @@ module LimitedBuildWorks
       Ult.execute( "mcs #{option_strings.join( ' ' )} #{command}" )
     end
     
-    def build_lib( output, srcs, add_options = {} )
+    def build_lib( output, srcs, add_options = {}, &callback )
       options = {
         "/target" => "library",
         "/out"    => output,
       }
       status, outputs, errors, command = build( options.merge( add_options ), srcs.join( " " ) )
       puts command
-      if 0 != status
-        puts outputs
-        puts errors
-        output = ""
-      end
-      output
+      callback.call( status, outputs, errors, command ) if ! callback.nil?
+      puts outputs if ! outputs.empty?
+      STDERR.puts errors if ! errors.empty?
+      status
     end
   end
 end

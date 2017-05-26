@@ -13,12 +13,10 @@ module LimitedBuildWorks
         option_strings.push "#{key}=#{value}"
       }
       status, outputs, errors, command = Ult.execute( "#{ndk_root}/ndk-build -B #{option_strings.join( ' ' )} #{command}" )
-      puts "#{command}"
+      puts command
       callback.call( status, outputs, errors, command ) if ! callback.nil?
-      if 0 != status
-        puts outputs
-        puts errors
-      end
+      puts outputs if ! outputs.empty?
+      STDERR.puts errors if ! errors.empty?
       status
     end
   end

@@ -33,14 +33,11 @@ module LimitedBuildWorks
       status, outputs, errors, command = build( options.merge( add_options ), "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" )
       puts "[#{arch}] #{command}"
       callback.call( status, outputs, errors, command ) if ! callback.nil?
-      if 0 == status
-        outputs.each{|line|
-          return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
-        }
-      else
-        puts outputs
-        puts errors
-      end
+      puts outputs if ! outputs.empty?
+      STDERR.puts errors if ! errors.empty?
+      outputs.each{|line|
+        return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
+      }
       ""
     end
     
@@ -63,8 +60,8 @@ module LimitedBuildWorks
       return dst if 0 == status
       
       puts command
-      puts outputs
-      puts errors
+      puts outputs if ! outputs.empty?
+      STDERR.puts errors if ! errors.empty?
       ""
     end
   end
