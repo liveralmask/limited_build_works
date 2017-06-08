@@ -4,20 +4,15 @@ module LimitedBuildWorks
   module Android
     extend self
     
-    def build_ndk( ndk_root, project_path, add_options = {}, &callback )
-      options = {
+    def build_ndk( ndk_root, project_path, options = {}, args = [] )
+      {
         "NDK_PROJECT_PATH" => project_path,
-      }.merge!( add_options )
-      option_strings = []
-      options.each{|key, value|
-        option_strings.push "#{key}=#{value}"
+      }.merge( options ).each{|key, value|
+        args.push "#{key}=#{value}"
       }
-      status, outputs, errors, command = Ult.execute( "#{ndk_root}/ndk-build -B #{option_strings.join( ' ' )} #{command}" )
-      puts command
-      puts outputs if ! outputs.empty?
-      STDERR.puts errors if ! errors.empty?
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
-      status
+      Ult.execute( "#{ndk_root}/ndk-build -B #{args.join( ' ' )}" ){|type, io, msg|
+        io.puts msg
+      }
     end
   end
 end

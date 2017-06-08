@@ -4,25 +4,20 @@ module LimitedBuildWorks
   module Mcs
     extend self
     
-    def build( options = {}, command = "" )
-      option_strings = []
+    def build( options = {}, args = [] )
       options.each{|key, value|
-        option_strings.push "#{key}:#{value}"
+        args.push "#{key}:#{value}"
       }
-      Ult.execute( "mcs #{option_strings.join( ' ' )} #{command}" )
+      Ult.execute( "mcs #{args.join( ' ' )}" ){|type, io, msg|
+        io.puts msg
+      }
     end
     
-    def build_lib( output, srcs, add_options = {}, &callback )
-      options = {
+    def build_lib( output, options = {}, args = [] )
+      build( {
         "/target" => "library",
         "/out"    => output,
-      }
-      status, outputs, errors, command = build( options.merge( add_options ), srcs.join( " " ) )
-      puts command
-      puts outputs if ! outputs.empty?
-      STDERR.puts errors if ! errors.empty?
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
-      status
+      }.merge( options ), args )
     end
   end
 end

@@ -4,63 +4,56 @@ module LimitedBuildWorks
   module Xcode
     extend self
     
-    def build( options = {}, command = "" )
-      option_strings = []
+    def build( options = {}, args = [] )
       options.each{|key, value|
-        option_strings.push "#{key} #{value}"
+        args.push "#{key} #{value}"
       }
-      Ult.execute( "xcodebuild #{option_strings.join( ' ' )} #{command}" )
+      output = ""
+      status = Ult.execute( "xcodebuild #{args.join( ' ' )}" ){|type, io, msg|
+        io.puts msg
+        case type
+        when :out
+          output = $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ msg
+        end
+      }
+      [ status, output ]
     end
     
-    def build_ios_arch( project, target, configuration, output_dir, arch, add_options = {}, &callback )
+    def build_ios_arch( project, target, configuration, output_dir, arch, options = {}, args = [] )
       case arch
       when /arm*/
         sdk = "iphoneos"
       when "i386", "x86_64"
         sdk = "iphonesimulator"
       else
-        puts "Unknown arch=#{arch}"
-        return ""
+        sdk = "unknown"
       end
       
-      options = {
+      print "[#{arch}] "
+      build( {
         "-project"       => project,
         "-target"        => target,
         "-configuration" => configuration,
         "-sdk"           => sdk,
         "-arch"          => arch,
-      }
-      status, outputs, errors, command = build( options.merge( add_options ), "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" )
-      puts "[#{arch}] #{command}"
-      puts outputs if ! outputs.empty?
-      STDERR.puts errors if ! errors.empty?
-      callback.call( status, outputs, errors, command ) if ! callback.nil?
-      outputs.each{|line|
-        return $2 if /^(Libtool|Ld)\s(.+?)\s/ =~ line
-      }
-      ""
+      }.merge( options ), [ "clean build CONFIGURATION_BUILD_DIR=#{output_dir}/#{arch}" ] )
     end
     
-    def build_ios_archs( project, target, configuration, output_dir, archs, add_options = {}, &callback )
-      callback = lambda{|status, outputs, errors, command|} if callback.nil?
-      results = []
+    def build_ios_archs( project, target, configuration, output_dir, archs, options = {}, args = [] )
+      outputs = []
       archs.each{|arch|
-        result = build_ios_arch( project, target, configuration, output_dir, arch, add_options ){|status, outputs, errors, command|
-          callback.call( status, outputs, errors, command )
-        }
-        return "" if ! Ult.file?( result )
-        
-        results.push result
+        status, output = build_ios_arch( project, target, configuration, output_dir, arch, options, args )
+        return [ status, "" ] if 0 != status
+        outputs.push output
       }
-      lipo_create( "#{output_dir}/#{Ult.filename( results[ 0 ] )}", results )
+      lipo_create( "#{output_dir}/#{Ult.filename( outputs[ 0 ] )}", outputs )
     end
     
     def lipo_create( dst, srcs )
-      status, outputs, errors, command = Ult.execute( "lipo -create #{srcs.join( ' ' )} -output #{dst}" )
-      puts command
-      puts outputs if ! outputs.empty?
-      STDERR.puts errors if ! errors.empty?
-      ( 0 == status ) ? dst : ""
+      status = Ult.execute( "lipo -create #{srcs.join( ' ' )} -output #{dst}" ){|type, io, msg|
+        io.puts msg
+      }
+      [ status, dst ]
     end
   end
 end
